@@ -1,0 +1,101 @@
+{% extends "auth/base.html" %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>Welcome, {{ current_user.username }}</h1>
+        <div class="subscription-status">
+            <span class="badge">{{ current_user.subscription_type|title }}</span>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- Song Analysis Section -->
+        <div class="dashboard-card">
+            <h2>Analyze New Song</h2>
+            <button class="btn" onclick="navigateToUpload()">
+                Upload Song
+            </button>
+        </div>
+
+        <!-- Recent Analyses -->
+        <div class="dashboard-card">
+            <h2>Recent Analyses</h2>
+            <div class="song-list">
+                {% for song in songs %}
+                <div class="song-item">
+                    <h3>{{ song.title }}</h3>
+                    <p>Artist: {{ song.artist }}</p>
+                    <p>Key: {{ song.key_signature }}</p>
+                    <p>Tempo: {{ "%.2f"|format(song.tempo) }} BPM</p>
+                </div>
+                {% else %}
+                <p>No songs analyzed yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Subscription Info -->
+        <div class="dashboard-card">
+            <h2>Subscription Details</h2>
+            <p>Plan: {{ current_user.subscription_type|title }}</p>
+            {% if current_user.subscription_end %}
+            <p>Expires: {{ current_user.subscription_end.strftime('%Y-%m-%d') }}</p>
+            {% endif %}
+            <button class="btn">Upgrade Plan</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.dashboard-container {
+    padding: 20px;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.dashboard-card {
+    background: rgba(13, 25, 48, 0.8);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.song-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.song-item {
+    padding: 10px;
+    margin-bottom: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 5px;
+}
+
+.badge {
+    background: #64ffda;
+    color: #0a192f;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-weight: bold;
+}
+</style>
+
+<script>
+function navigateToUpload() {
+    window.location.href = "{{ url_for('main.index') }}";
+}
+</script>
+{% endblock %} 

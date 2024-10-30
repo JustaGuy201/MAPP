@@ -1,484 +1,164 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAPP - Music Analysis and Pattern Prediction</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            background-color: #0a192f; /* Dark blue background */
-            color: #e0e0e0;
-            overflow: hidden;
-        }
-        #eq-background {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-        }
-        .container {
-            max-width: 800px;
-            margin: 40px auto;
-            background: rgba(13, 25, 48, 0.8);
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            position: relative;
-            z-index: 1;
-        }
-        h1 {
-            font-family: 'Orbitron', sans-serif;
-            color: #64ffda;
-            font-size: 3em;
-            margin-bottom: 20px;
-            text-shadow: 0 0 10px rgba(100, 255, 218, 0.5);
-            text-align: center;
-        }
-        .subheading-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            flex-wrap: nowrap;
-        }
-        h2, h3 {
-            font-family: 'Orbitron', sans-serif;
-            color: #5bc2ff;
-            font-size: 1.2em;
-            font-weight: 400;
-            margin: 0;
-            white-space: nowrap;
-        }
-        h3 {
-            text-align: right;
-        }
-        p {
-            margin-bottom: 20px;
-            font-size: 1.1em;
-        }
-        form {
-            display: grid;
-            gap: 15px;
-        }
-        input[type="file"], input[type="text"], input[type="number"], button {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            background-color: rgba(61, 61, 61, 0.6);
-            color: #e0e0e0;
-            font-size: 1em;
-            transition: all 0.3s ease;
-        }
-        input[type="file"]:hover, input[type="text"]:hover, input[type="number"]:hover {
-            background-color: rgba(81, 81, 81, 0.6);
-        }
-        button {
-            background-color: #64ffda;
-            color: #0a192f;
-            cursor: pointer;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-        }
-        button:hover {
-            background-color: #5bc2ff;
-            box-shadow: 0 0 15px rgba(91, 194, 255, 0.5);
-        }
-        .music-icon {
-            font-size: 2em;
-            vertical-align: middle;
-        }
-        #wave-background {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-        }
-        #lyrics-input-container {
-            display: none;
-            margin-top: 20px;
-        }
-        #lyrics-input {
-            width: 100%;
-            height: 100px;
-            padding: 5px;
-            background-color: rgba(61, 61, 61, 0.6);
-            color: #e0e0e0;
-            border: none;
-            border-radius: 4px;
-        }
-        input[type="number"].year-picker {
-            -webkit-appearance: none;
-            -moz-appearance: textfield;
-            appearance: none;
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            background-color: rgba(61, 61, 61, 0.6);
-            color: #e0e0e0;
-            font-size: 1em;
-            transition: all 0.3s ease;
-        }
-        input[type="number"].year-picker::-webkit-inner-spin-button,
-        input[type="number"].year-picker::-webkit-outer-spin-button {
-            opacity: 1;
-            background: rgba(61, 61, 61, 0.6);
-            border-radius: 8px;
-            height: 100%;
-        }
-        .year-picker-container {
-            position: relative;
-            width: 100%;
-        }
-        .year-picker-input {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            background-color: rgba(61, 61, 61, 0.6);
-            color: #e0e0e0;
-            font-size: 1em;
-            cursor: pointer;
-        }
-        .year-picker-dropdown {
-            display: none;
-            position: absolute;
-            width: 100%;
-            max-height: 200px;
-            overflow-y: scroll;
-            background-color: rgba(30, 30, 30, 0.95); /* Darker and more opaque */
-            border-radius: 8px;
-            z-index: 1000;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); /* Added shadow for depth */
-        }
-        .year-option {
-            padding: 10px;
-            text-align: center;
-            color: #e0e0e0;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .year-option:hover {
-            background-color: rgba(91, 194, 255, 0.3); /* Slightly more visible on hover */
-        }
-        .year-picker-dropdown::-webkit-scrollbar {
-            width: 10px;
-        }
-        .year-picker-dropdown::-webkit-scrollbar-thumb {
-            background-color: rgba(91, 194, 255, 0.5);
-            border-radius: 5px;
-        }
-        .animated-text-container {
-            overflow: hidden;
-            margin-top: 20px;
-            margin-bottom: 35px;
-            width: 100%;
-            height: 80px;
-            position: relative;
-        }
-        .animated-text {
-            display: block;
-            width: 100%;
-            height: 100%;
-            position: relative;
-        }
-        .animated-text p {
-            margin: 0;
-            padding: 5px 0;
-            position: absolute;
-            width: 100%;
-            top: 0;
-            left: 0;
-            opacity: 0;
-            animation: fadeInOut 47s linear infinite; /* Increased to 47s */
-            color: #64ffda;
-            text-shadow: 0 0 10px rgba(100, 255, 218, 0.5);
-        }
-        .animated-text p:nth-child(1) { animation-delay: 0s; }
-        .animated-text p:nth-child(2) { animation-delay: 7s; }
-        .animated-text p:nth-child(3) { animation-delay: 14s; }
-        .animated-text p:nth-child(4) { animation-delay: 21s; }
-        .animated-text p:nth-child(5) { animation-delay: 28s; }
+{% extends "base.html" %}
 
-        @keyframes fadeInOut {
-            0%, 1.49% { opacity: 0; transform: translateY(20px); }
-            2.98%, 13.40% { opacity: 1; transform: translateY(0); }
-            14.89%, 100% { opacity: 0; transform: translateY(-20px); }
-        }
-
-        /* Loading Overlay Styles */
-        .loading-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(10, 25, 47, 0.9);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-
-        .loading-spinner {
-            width: 80px;
-            height: 80px;
-            border: 5px solid #64ffda;
-            border-top: 5px solid transparent;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-
-        .loading-text {
-            color: #64ffda;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.2em;
-            text-align: center;
-        }
-
-        .loading-progress {
-            width: 200px;
-            height: 4px;
-            background: rgba(100, 255, 218, 0.2);
-            border-radius: 2px;
-            margin-top: 15px;
-            overflow: hidden;
-        }
-
-        .loading-progress-bar {
-            width: 0%;
-            height: 100%;
-            background: #64ffda;
-            border-radius: 2px;
-            transition: width 0.3s ease;
-            animation: progress 2s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @keyframes progress {
-            0% { width: 0%; }
-            50% { width: 100%; }
-            100% { width: 0%; }
-        }
-    </style>
-</head>
-<body>
-    <canvas id="wave-background"></canvas>
-    <div class="container">
-        <h1><span class="music-icon">🎵</span>Welcome to MAPP<span class="music-icon">🎵</span></h1>
-        <div class="subheading-container">
-            <h2>Music Analysis and Pattern Prediction</h2>
-            <h3>To help you find your way!</h3>
+{% block content %}
+<div class="container">
+    <h1><span class="music-icon">🎵</span>Welcome to MAPP<span class="music-icon">🎵</span></h1>
+    <div class="subheading-container">
+        <h2>Music Analysis and Pattern Prediction</h2>
+        <h3>To help you find your way!</h3>
+    </div>
+    <div class="animated-text-container">
+        <div class="animated-text">
+            <p>Unleash the power of AI to analyze your music and gain valuable insights. Perfect for musicians, artists, songwriters, and producers.</p>
+            <p>Find out your hit potential by seeing how your song compares to artists whose songs chart on popular charts like Billboard Hot 100!</p>
+            <p>Get realtime analytics that show your track's strengths and areas where you could benefit from constructive criticism.</p>
+            <p>Get insightful, easy to read charts and have our dynamic AI-powered system provide suggestions for your song's structure, lyrics, and songwriting techniques.</p>
+            <p>We know how hard you work so, why not let us clear the path to help you find your way?</p>
         </div>
-        <div class="animated-text-container">
-            <div class="animated-text">
-                <p>Unleash the power of AI to analyze your music and gain valuable insights. Perfect for musicians, artists, songwriters, and producers.</p>
-                <p>Find out your hit potential by seeing how your song compares to artists whose songs chart on popular charts like Billboard Hot 100!</p>
-                <p>Get realtime analytics that show your track's strengths and areas where you could benefit from constructive criticism.</p>
-                <p>Get insightful, easy to read charts and have our dynamic AI-powered system provide suggestions for your song's structure, lyrics, and songwriting techniques.</p>
-                <p>We know how hard you work so, why not let us clear the path to help you find your way?</p>
-            </div>
-        </div>
+    </div>
+    
+    <div class="upload-section" style="max-width: 500px; margin: 0 auto;">
+        <h2>Upload Your Track</h2>
         <form id="analysis-form" action="{{ url_for('api.analyze_song') }}" method="post" enctype="multipart/form-data">
-            <input type="file" name="file" accept=".mp3,.wav" title="Choose your track" required>
-            <input type="text" name="title" placeholder="🎵 Song Title" required>
-            <input type="text" name="artist" placeholder="🎤 Artist" required>
-            <div class="year-picker-container">
-                <input type="text" id="year-picker-input" class="year-picker-input" placeholder="📅 Year" readonly>
-                <input type="hidden" name="year" id="year-picker-hidden">
-                <div id="year-picker-dropdown" class="year-picker-dropdown"></div>
-            </div>
-            <input type="text" name="producer" placeholder="🎚️ Producer">
-            <button type="submit">🚀 Analyze Track</button>
+            <input type="file" name="file" accept=".mp3,.wav" required>
+            <input type="text" name="title" placeholder="Song Title" required>
+            <input type="text" name="artist" placeholder="Artist" required>
+            <select name="year" required style="display: block; width: 103%; height: 35px; padding: 8px; margin-bottom: 10px; border: 1px solid #64ffda; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: #e0e0e0;">
+                {% for year in range(current_year, current_year - 6, -1) %}
+                    <option value="{{ year }}">{{ year }}</option>
+                {% endfor %}
+            </select>
+            <input type="text" name="producer" placeholder="Producer">
+            <button type="submit" style="display: block; width: calc(103%); margin: 0 -1px;">Analyze Track</button>
         </form>
-        <div id="lyrics-input-container">
-            <p>We couldn't detect lyrics from the audio. Would you like to input them manually?</p>
-            <textarea id="lyrics-input" placeholder="Enter your lyrics here..."></textarea>
-            <button id="submit-lyrics">Submit Lyrics</button>
-        </div>
     </div>
+</div>
 
-    <!-- Add this right after the container div -->
-    <div class="loading-overlay">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">Analyzing your track...</div>
-        <div class="loading-progress">
-            <div class="loading-progress-bar"></div>
-        </div>
-    </div>
-
-    <script>
-        const canvas = document.getElementById('wave-background');
-        const ctx = canvas.getContext('2d');
-
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        const centerY = canvas.height / 2;
-        const waveCount = 5;
-        const baseAmplitude = canvas.height / 8;
-        const frequency = 0.01;
-        const speed = 0.002;
-
-        function drawWave(time, depth) {
-            ctx.beginPath();
-            for (let x = 0; x < canvas.width; x += 2) {
-                const y = centerY + 
-                    Math.sin(x * frequency + time * speed) * baseAmplitude * (1 - depth / waveCount) +
-                    Math.sin(x * frequency * 2 + time * speed * 1.5) * baseAmplitude / 2 * (1 - depth / waveCount);
-                ctx.lineTo(x, y);
-            }
-            ctx.stroke();
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const animatedText = document.querySelector('.animated-text');
+        
+        function resetAnimation() {
+            animatedText.style.animation = 'none';
+            animatedText.offsetHeight;
+            animatedText.style.animation = null;
         }
 
-        function animate(time) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        animatedText.addEventListener('animationiteration', resetAnimation);
 
-            // Draw central light
-            const gradient = ctx.createRadialGradient(canvas.width / 2, centerY, 0, canvas.width / 2, centerY, canvas.height / 2);
-            gradient.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
-            gradient.addColorStop(1, 'rgba(91, 194, 255, 0)');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Draw waves
-            for (let i = 0; i < waveCount; i++) {
-                ctx.strokeStyle = `rgba(91, 194, 255, ${0.7 - i * 0.1})`;
-                ctx.lineWidth = 2 - i * 0.3;
-                drawWave(time, i);
-            }
-
-            requestAnimationFrame(animate);
-        }
-
-        animate(0);
-
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            centerY = canvas.height / 2;
-        });
-
-        document.getElementById('analysis-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
+        {% if not current_user.is_authenticated %}
+            const form = document.getElementById('analysis-form');
+            const inputs = form.querySelectorAll('input, select, button');
             
-            // Show loading overlay
-            document.querySelector('.loading-overlay').style.display = 'flex';
+            // Create a more elegant overlay
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(13, 25, 48, 0.95);
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                border-radius: 8px;
+                z-index: 10;
+                backdrop-filter: blur(4px);
+                border: 1px solid rgba(100, 255, 218, 0.2);
+                box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+                transition: all 0.3s ease;
+            `;
             
-            fetch("{{ url_for('api.analyze_song') }}", {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Hide loading overlay
-                document.querySelector('.loading-overlay').style.display = 'none';
-                
-                if (data.lyrics_detected === false) {
-                    document.getElementById('lyrics-input-container').style.display = 'block';
-                } else {
-                    // Handle successful analysis
-                    console.log('Analysis complete:', data);
-                }
-            })
-            .catch(error => {
-                // Hide loading overlay and show error
-                document.querySelector('.loading-overlay').style.display = 'none';
-                console.error('Error:', error);
-                alert('An error occurred during analysis. Please try again.');
-            });
-        });
-
-        document.getElementById('submit-lyrics').addEventListener('click', function() {
-            const lyrics = document.getElementById('lyrics-input').value;
-            // Send lyrics to backend
-            fetch("{{ url_for('api.submit_lyrics') }}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({lyrics: lyrics})
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Lyrics submitted:', data);
-                // Handle response
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        });
-
-        // Set up year picker
-        document.addEventListener('DOMContentLoaded', function() {
-            const yearPickerInput = document.getElementById('year-picker-input');
-            const yearPickerHidden = document.getElementById('year-picker-hidden');
-            const yearPickerDropdown = document.getElementById('year-picker-dropdown');
-            const currentYear = new Date().getFullYear();
-            const minYear = currentYear - 5;
-
-            // Populate dropdown
-            for (let year = currentYear; year >= minYear; year--) {
-                const option = document.createElement('div');
-                option.classList.add('year-option');
-                option.textContent = year;
-                option.onclick = function() {
-                    yearPickerInput.value = year;
-                    yearPickerHidden.value = year;
-                    yearPickerDropdown.style.display = 'none';
-                };
-                yearPickerDropdown.appendChild(option);
-            }
-
-            yearPickerInput.onclick = function() {
-                yearPickerDropdown.style.display = yearPickerDropdown.style.display === 'block' ? 'none' : 'block';
-            };
-
-            // Close dropdown when clicking outside
-            document.addEventListener('click', function(event) {
-                if (!yearPickerInput.contains(event.target) && !yearPickerDropdown.contains(event.target)) {
-                    yearPickerDropdown.style.display = 'none';
-                }
-            });
-
-            // Set initial value
-            yearPickerInput.value = currentYear;
-            yearPickerHidden.value = currentYear;
-        });
-
-        // Animated text
-        document.addEventListener('DOMContentLoaded', function() {
-            const animatedText = document.querySelector('.animated-text');
+            // Create a more stylish message container
+            const messageContainer = document.createElement('div');
+            messageContainer.style.cssText = `
+                background: rgba(100, 255, 218, 0.1);
+                padding: 30px;
+                border-radius: 8px;
+                border: 1px solid #64ffda;
+                text-align: center;
+                max-width: 80%;
+            `;
             
-            function resetAnimation() {
-                animatedText.style.animation = 'none';
-                animatedText.offsetHeight; // Trigger reflow
-                animatedText.style.animation = null;
-            }
-
-            animatedText.addEventListener('animationiteration', resetAnimation);
-        });
-    </script>
-</body>
-</html>
+            // Add icon
+            const icon = document.createElement('div');
+            icon.style.cssText = `
+                font-size: 2.5em;
+                color: #64ffda;
+                margin-bottom: 15px;
+                text-shadow: 0 0 10px rgba(100, 255, 218, 0.5);
+            `;
+            icon.textContent = '🔒';
+            
+            // Style the message text
+            const message = document.createElement('div');
+            message.style.cssText = `
+                color: #64ffda;
+                font-family: 'Orbitron', sans-serif;
+                font-size: 1.2em;
+                margin-bottom: 20px;
+                text-shadow: 0 0 10px rgba(100, 255, 218, 0.3);
+            `;
+            message.textContent = 'Please log in or create an account to analyze songs';
+            
+            // Add stylish buttons
+            const buttonContainer = document.createElement('div');
+            buttonContainer.style.cssText = `
+                display: flex;
+                gap: 15px;
+                margin-top: 20px;
+                justify-content: center;
+                width: 100%;
+            `;
+            
+            const loginButton = document.createElement('a');
+            loginButton.href = "{{ url_for('auth.login') }}";
+            loginButton.style.cssText = `
+                padding: 10px 20px;
+                background: rgba(100, 255, 218, 0.1);
+                border: 1px solid #64ffda;
+                border-radius: 4px;
+                color: #64ffda;
+                text-decoration: none;
+                font-family: 'Orbitron', sans-serif;
+                transition: all 0.3s ease;
+            `;
+            loginButton.textContent = 'Login';
+            loginButton.onmouseover = () => loginButton.style.background = 'rgba(100, 255, 218, 0.2)';
+            loginButton.onmouseout = () => loginButton.style.background = 'rgba(100, 255, 218, 0.1)';
+            
+            const signupButton = document.createElement('a');
+            signupButton.href = "{{ url_for('auth.register') }}";
+            signupButton.style.cssText = loginButton.style.cssText;
+            signupButton.textContent = 'Sign Up';
+            signupButton.onmouseover = () => signupButton.style.background = 'rgba(100, 255, 218, 0.2)';
+            signupButton.onmouseout = () => signupButton.style.background = 'rgba(100, 255, 218, 0.1)';
+            
+            // Assemble the overlay
+            messageContainer.appendChild(icon);
+            messageContainer.appendChild(message);
+            buttonContainer.appendChild(loginButton);
+            buttonContainer.appendChild(signupButton);
+            messageContainer.appendChild(buttonContainer);
+            overlay.appendChild(messageContainer);
+            
+            // Add to the form
+            form.parentElement.style.position = 'relative';
+            form.parentElement.appendChild(overlay);
+            
+            // Disable form elements with style
+            inputs.forEach(input => {
+                input.disabled = true;
+                input.style.opacity = '0.5';
+                input.style.cursor = 'not-allowed';
+            });
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+            });
+        {% endif %}
+    });
+</script>
+{% endblock %}

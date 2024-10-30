@@ -1,0 +1,129 @@
+{% extends "auth/base.html" %}
+
+{% block content %}
+<div class="subscription-container">
+    <h1>Subscription Management</h1>
+    
+    <div class="plan-grid">
+        <!-- Free Plan -->
+        <div class="plan-card {% if current_user.subscription_type == 'free' %}active{% endif %}">
+            <h2>Free Plan</h2>
+            <div class="price">$0/month</div>
+            <ul class="features">
+                <li>3 song analyses per month</li>
+                <li>Basic audio analysis</li>
+                <li>Standard support</li>
+            </ul>
+            {% if current_user.subscription_type != 'free' %}
+            <button class="btn" onclick="changePlan('free')">Select Plan</button>
+            {% else %}
+            <button class="btn" disabled>Current Plan</button>
+            {% endif %}
+        </div>
+
+        <!-- Premium Plan -->
+        <div class="plan-card {% if current_user.subscription_type == 'premium' %}active{% endif %}">
+            <h2>Premium Plan</h2>
+            <div class="price">$9.99/month</div>
+            <ul class="features">
+                <li>Unlimited song analyses</li>
+                <li>Advanced audio analysis</li>
+                <li>Priority support</li>
+                <li>Detailed recommendations</li>
+                <li>Export capabilities</li>
+            </ul>
+            {% if current_user.subscription_type != 'premium' %}
+            <button class="btn" onclick="changePlan('premium')">Upgrade Now</button>
+            {% else %}
+            <button class="btn" disabled>Current Plan</button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.subscription-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.plan-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-top: 30px;
+}
+
+.plan-card {
+    background: rgba(13, 25, 48, 0.8);
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.plan-card:hover {
+    transform: translateY(-5px);
+}
+
+.plan-card.active {
+    border: 2px solid #64ffda;
+}
+
+.price {
+    font-size: 2em;
+    color: #64ffda;
+    margin: 20px 0;
+}
+
+.features {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+.features li {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn {
+    width: 100%;
+    margin-top: 20px;
+}
+
+.btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+</style>
+
+<script>
+function changePlan(planType) {
+    if (confirm(`Are you sure you want to switch to the ${planType} plan?`)) {
+        fetch('/api/subscription/change', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                plan: planType
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert(data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to change subscription plan');
+        });
+    }
+}
+</script>
+{% endblock %} 

@@ -1,0 +1,10 @@
+Dear {{ user.username }},
+
+Welcome to MAPP! To verify your email address click on the following link:
+
+{{ url_for('auth.verify_email', token=token, _external=True) }}
+
+If you have not requested a verification email, simply ignore this message.
+
+Sincerely,
+The MAPP Team 
